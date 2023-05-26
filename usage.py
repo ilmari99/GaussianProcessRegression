@@ -23,17 +23,6 @@ def create_3d_data():
     Y_train_shape = (1000,1)
     X_test_shape = (100,2)
     Y_test_shape = (100,1)
-    train_noise_level = 0
-    test_noise_level = 0
-    X_train, Y_train = create_sin_wave_with_noise(X_train_shape, Y_train_shape,train_noise_level)
-    X_test, Y_test = create_sin_wave_with_noise(X_test_shape, Y_test_shape,test_noise_level)
-    return X_train, Y_train, X_test, Y_test
-
-def create_2d_data():
-    X_train_shape = (1000,1)
-    Y_train_shape = (1000,1)
-    X_test_shape = (100,1)
-    Y_test_shape = (100,1)
     train_noise_level = 0.1
     test_noise_level = 0.1
     X_train, Y_train = create_sin_wave_with_noise(X_train_shape, Y_train_shape,train_noise_level)
@@ -43,7 +32,7 @@ def create_2d_data():
 def run_3d_GP():
     # Create data
     X_train, Y_train, X_test, Y_test = create_3d_data()
-    noise_var = 1e-6
+    noise_var = 0.001
     
     # Define kernel and process
     kernel = SquaredExponentialKernel(sigma = 1, l = 1)
@@ -53,6 +42,7 @@ def run_3d_GP():
     fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
     ax.scatter(X_train[:,0], X_train[:,1], Y_train, label="Train data")
     ax.legend()
+    ax.set_title("Training data")
 
     # Fit model to training data and plot samples from prior
     prior = np.transpose(process.fit(X_train, Y_train).rvs(10))
@@ -63,6 +53,7 @@ def run_3d_GP():
         ax.plot_trisurf(X_train[:,0], X_train[:,1], p, linewidth=0.2, antialiased=True)
     ax.scatter(X_train[:,0], X_train[:,1], Y_train, label="Train data")
     ax.legend()
+    ax.set_title("Prior samples")
 
 
     # Predict on test data and plot test data and samples from posterior
@@ -79,8 +70,20 @@ def run_3d_GP():
         ax.plot_trisurf(X_test[:,0], X_test[:,1], p, linewidth=0.2, antialiased=True)
     ax.scatter(X_test[:,0], X_test[:,1], Y_test, label="Test data")
     ax.legend()
+    ax.set_title("Posterior samples")
 
     plt.show()
+
+def create_2d_data():
+    X_train_shape = (200,1)
+    Y_train_shape = (200,1)
+    X_test_shape = (20,1)
+    Y_test_shape = (20,1)
+    train_noise_level = 0.1
+    test_noise_level = 0.1
+    X_train, Y_train = create_sin_wave_with_noise(X_train_shape, Y_train_shape,train_noise_level)
+    X_test, Y_test = create_sin_wave_with_noise(X_test_shape, Y_test_shape,test_noise_level)
+    return X_train, Y_train, X_test, Y_test
 
 def run_2d_GP():
     X_train, Y_train, X_test, Y_test = create_2d_data()
@@ -91,7 +94,7 @@ def run_2d_GP():
     sort_ind = np.argsort(X_test[:,0])
     X_test = X_test[sort_ind]
     Y_test = Y_test[sort_ind]
-    noise_var = 1e-6
+    noise_var = 0.1
     kernel = SquaredExponentialKernel(sigma = 1, l = 1)
     process = GaussianProcessRegression(kernel, noise_var, verbose=True)
 
@@ -111,14 +114,18 @@ def run_2d_GP():
     posterior_distribution = process.predict(X_test)
     posterior_mean = posterior_distribution.mean
     posterior_cov = posterior_distribution.cov
-    posterior_samples = np.transpose(posterior_distribution.rvs(10))
+    posterior_samples = np.transpose(posterior_distribution.rvs(100))
     print(f"Posterior mean shape: {posterior_mean.shape}")
     print(f"Posterior cov shape: {posterior_cov.shape}")
     print(f"Posterior samples shape: {posterior_samples.shape}")
     fig, ax = plt.subplots()
     for posterior_col_ind in range(posterior_samples.shape[1]):
         p = posterior_samples[:,posterior_col_ind]
-        ax.plot(X_test, p)
+        # Plot the prior
+        ax.plot(X_test, p, linewidth=0.2, antialiased=True)
+    # Plot the posterior mean, and its confidence interval
+    ax.plot(X_test, posterior_mean, color="black", label="Posterior mean")
+    ax.fill_between(X_test.ravel(), posterior_mean - 2*np.sqrt(np.diag(posterior_cov)), posterior_mean + 2*np.sqrt(np.diag(posterior_cov)), alpha=0.2, color="black", label="95% confidence interval")
     ax.scatter(X_test, Y_test, label="Test data")
     ax.legend()
     ax.set_title("Posterior samples")
@@ -127,8 +134,8 @@ def run_2d_GP():
 
 
 if __name__ == "__main__":
-    #run_2d_GP()
-    run_3d_GP()
+    run_2d_GP()
+    #run_3d_GP()
 
 
 
