@@ -29,7 +29,7 @@ def create_3d_data():
     X_test, Y_test = create_sin_wave_with_noise(X_test_shape, Y_test_shape,test_noise_level)
     return X_train, Y_train, X_test, Y_test
 
-def run_3d_GP():
+def run_3d_GP_demo():
     # Create data
     X_train, Y_train, X_test, Y_test = create_3d_data()
     noise_var = 0.001
@@ -60,6 +60,7 @@ def run_3d_GP():
     posterior_distribution = process.predict(X_test)
     posterior_mean = posterior_distribution.mean
     posterior_cov = posterior_distribution.cov
+    # Get the values at X_test points
     posterior_samples = np.transpose(posterior_distribution.rvs(10))
     print(f"Posterior mean shape: {posterior_mean.shape}")
     print(f"Posterior cov shape: {posterior_cov.shape}")
@@ -85,7 +86,7 @@ def create_2d_data():
     X_test, Y_test = create_sin_wave_with_noise(X_test_shape, Y_test_shape,test_noise_level)
     return X_train, Y_train, X_test, Y_test
 
-def run_2d_GP():
+def run_2d_GP_demo():
     X_train, Y_train, X_test, Y_test = create_2d_data()
     # Sort data
     sort_ind = np.argsort(X_train[:,0])
@@ -124,7 +125,7 @@ def run_2d_GP():
         # Plot the prior
         ax.plot(X_test, p, linewidth=0.2, antialiased=True)
     # Plot the posterior mean, and its confidence interval
-    ax.plot(X_test, posterior_mean, color="black", label="Posterior mean")
+    ax.scatter(X_test, posterior_mean, color="black", label="Posterior mean")
     ax.fill_between(X_test.ravel(), posterior_mean - 2*np.sqrt(np.diag(posterior_cov)), posterior_mean + 2*np.sqrt(np.diag(posterior_cov)), alpha=0.2, color="black", label="95% confidence interval")
     ax.scatter(X_test, Y_test, label="Test data")
     ax.legend()
@@ -134,8 +135,8 @@ def run_2d_GP():
 
 
 if __name__ == "__main__":
-    run_2d_GP()
-    #run_3d_GP()
+    run_2d_GP_demo()
+    #run_3d_GP_demo()
 
 
 
