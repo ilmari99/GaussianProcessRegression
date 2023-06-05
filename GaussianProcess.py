@@ -1,11 +1,10 @@
 import numpy as np
-from Kernels import SquaredExponentialKernel, MaternKernel, PeriodicKernel, Kernel
+from Kernels import SquaredExponentialKernel, PeriodicKernel, Kernel
 import scipy.stats as stats
 import math
 
 KERNEL_MAP = {
     "SquaredExponential" : SquaredExponentialKernel,
-    "Matern" : MaternKernel,
     "Periodic" : PeriodicKernel,
     "Linear" : Kernel,
 }
@@ -43,8 +42,10 @@ class GaussianProcessRegression:
             print(f"Predicting X shape {X.shape}")
         K_test_train = self.kernel(X, self.X_train,check_positive_definite=False)
         K_test_test = self.kernel(X, X) + self.sigma_n * np.eye(X.shape[0])
+
         post_mean = K_test_train @ self.K_train_inv @ self.y_train
         post_K = K_test_test - K_test_train @ self.K_train_inv @ K_test_train.T
+        
         self.kernel.ensure_positive_definite(post_K)
         post = stats.multivariate_normal(post_mean.ravel(), post_K, allow_singular=allow_singular)
         return post
